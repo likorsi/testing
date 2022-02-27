@@ -1,16 +1,29 @@
 package ru.kkuzmichev.simpleappforespresso;
 
 import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu;
+import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.intent.Intents.intended;
+import static androidx.test.espresso.intent.matcher.IntentMatchers.hasData;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
 
+import static org.hamcrest.Matchers.allOf;
+
+import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.ViewAssertion;
+import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.contrib.DrawerActions;
 import androidx.test.espresso.contrib.NavigationViewActions;
+import androidx.test.espresso.intent.Intents;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.ActivityTestRule;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +39,15 @@ public class ExampleInstrumentedTest {
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(
             MainActivity.class);
 
+    @Before
+    public void registerIdlingResources() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResources.idlingResource);
+    }
+    @After
+    public void unregisterIdlingResources() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResources.idlingResource);
+    }
+
     @Test
     public void positiveTest() {
         onView(withId(R.id.text_home)).check(matches(withText("This is home fragment")));
@@ -39,5 +61,25 @@ public class ExampleInstrumentedTest {
         onView(withId(R.id.drawer_layout)).perform(DrawerActions.open());
         onView(withId(R.id.nav_view)).perform(NavigationViewActions.navigateTo(R.id.nav_home));
         onView(withId(R.id.fab)).check(matches(isDisplayed()));
+    }
+
+    @Test
+    public void intentTest() {
+        openActionBarOverflowOrOptionsMenu(getInstrumentation().getTargetContext());
+        Intents.init();
+        onView(withText(R.string.action_settings)).perform(click());
+        intended(hasData("https://google.com"));
+        Intents.release();
+    }
+
+    @Test
+    public void listTest() {
+        onView(withId(R.id.drawer_layout)).perform(DrawerActions.open());
+        onView(withId(R.id.nav_view)).perform(NavigationViewActions.navigateTo(R.id.nav_gallery));
+        onView(withId(R.id.drawer_layout)).perform(DrawerActions.close());
+
+        ViewInteraction recyclerView = onView(withId(R.id.recycle_view));
+        recyclerView.check(CustomViewAssertions.isRecyclerView());
+        recyclerView.check(matches((CustomViewMatcher.recyclerViewSizeMatcher(10))));
     }
 }
