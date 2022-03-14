@@ -14,7 +14,6 @@ import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentat
 import static org.hamcrest.Matchers.allOf;
 
 import androidx.test.espresso.IdlingRegistry;
-import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.espresso.contrib.DrawerActions;
 import androidx.test.espresso.contrib.NavigationViewActions;
@@ -43,10 +42,7 @@ public class ExampleInstrumentedTest {
     public void registerIdlingResources() {
         IdlingRegistry.getInstance().register(EspressoIdlingResources.idlingResource);
     }
-    @After
-    public void unregisterIdlingResources() {
-        IdlingRegistry.getInstance().unregister(EspressoIdlingResources.idlingResource);
-    }
+
 
     @Test
     public void positiveTest() {
@@ -81,5 +77,12 @@ public class ExampleInstrumentedTest {
         ViewInteraction recyclerView = onView(withId(R.id.recycle_view));
         recyclerView.check(CustomViewAssertions.isRecyclerView());
         recyclerView.check(matches((CustomViewMatcher.recyclerViewSizeMatcher(10))));
+
+        onView(allOf(withId(R.id.item_number), withText("1"))).check(matches(isDisplayed()));
+    }
+
+    @After
+    public void unregisterIdlingResources() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResources.idlingResource);
     }
 }
